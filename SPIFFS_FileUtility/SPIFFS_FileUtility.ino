@@ -1,10 +1,11 @@
 #include "FS.h"
 
+#define FILENAME  "/tmp.txt"
+
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
   delay(500);
-  Serial.println("");
+  Serial.println();
 
   bool res = SPIFFS.begin();
   if (!res) {
@@ -19,10 +20,14 @@ void loop() {
   if (Serial.available() > 0)
   {
     readValue = Serial.read();
+
+    // Read TextFile
     if (readValue == 'r')
     {
       ReadTextFileAll();
     }
+
+    // Text Write
     else if (readValue == 'w')
     {
       unsigned long millisValue = millis();
@@ -30,6 +35,8 @@ void loop() {
       Serial.println(millisValue);
       WriteTextFile(String(millisValue));
     }
+
+    // Format FileSystem
     else if (readValue == 'f')
     {
       SPIFFS.format();
@@ -38,10 +45,10 @@ void loop() {
   }
 }
 
-
+// Write TextFile
 int WriteTextFile(String writeText)
 {
-  File fd = SPIFFS.open("/tmp.txt", "a");
+  File fd = SPIFFS.open(FILENAME, "a");
   if (!fd) {
     Serial.println("file open error.");
     return -1;
@@ -51,9 +58,10 @@ int WriteTextFile(String writeText)
   return 0;
 }
 
+// Read TextFile
 int ReadTextFileAll()
 {
-  File fd = SPIFFS.open("/tmp.txt", "r");
+  File fd = SPIFFS.open(FILENAME, "r");
   if (!fd) {
     Serial.println("file open error.");
     return -1;
@@ -61,10 +69,12 @@ int ReadTextFileAll()
   Serial.print("filesize= ");
   Serial.println(fd.size());
 
-  String str = fd.readStringUntil('\0');
-  Serial.println(str);
-  Serial.println("");
-  
+  while (fd.available())
+  {
+    String str = fd.readStringUntil('\n');
+    Serial.println(str);
+  }  
+  Serial.println();
   fd.close();
   return 0;
 }
